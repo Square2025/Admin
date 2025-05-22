@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useParams, useNavigate } from 'react-router-dom';
-import { fetchCourseById, clearSelectedCourse } from '../../store/slices/Courses/coursesSlice';
+import { fetchCourseById, clearSelectedCourse, deleteCourse } from '../../store/slices/Courses/coursesSlice';
 import { FaStar, FaUsers, FaTag, FaArrowLeft, FaEdit, FaTrash, FaChevronDown, FaChevronUp, FaCheck } from 'react-icons/fa';
 
 const SingleCoursePage = () => {
   const { courseId } = useParams();
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { selectedCourse, singleCourseLoading, singleCourseError } = useSelector((state) => state.courses);
+  const { selectedCourse, singleCourseLoading, singleCourseError, deleteLoading } = useSelector((state) => state.courses);
   const [expandedSections, setExpandedSections] = useState({});
 
   useEffect(() => {
@@ -27,7 +27,20 @@ const SingleCoursePage = () => {
       [sectionId]: !prev[sectionId]
     }));
   };
-
+  
+  const handleDelete = (courseId) => {
+    if (window.confirm('Are you sure you want to delete this course?')) {
+      dispatch(deleteCourse(courseId))
+        .unwrap()
+        .then(() => {
+          navigate('/all-courses');
+        })
+        .catch((error) => {
+          alert(`Failed to delete course: ${error}`);
+        });
+    }
+  };
+  
   // Format price with Indian Rupee symbol
   const formatPrice = (price) => {
     return new Intl.NumberFormat('en-IN', {
@@ -85,6 +98,7 @@ const SingleCoursePage = () => {
               Edit
             </button>
             <button 
+            onClick={()=>{handleDelete(courseId)}}
               className="flex items-center bg-gradient-to-r from-[#ff6b6b] to-[#ee5253] text-white px-4 py-2 rounded-md hover:opacity-90 transition-opacity duration-300 shadow-md"
             >
               <FaTrash className="mr-2" />
